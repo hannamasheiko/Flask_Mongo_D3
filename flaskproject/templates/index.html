@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Map</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<!-- Bootstrap JavaScript -->
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<!-- d3 and Datamaps JavaScript -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+<script src="//datamaps.github.io/scripts/0.4.4/datamaps.world.min.js"></script>
+</head>
+<body>
+
+<div id="container" style="position: relative; width: 1000px; height: 600px;"></div>
+<script>
+    var temp = {{transmitted_data|safe}};
+    var min = {{minval|safe}};
+    var max = {{maxval|safe}};
+    var dataToMap = {};
+
+    //create color palette function
+    var paletteScale = d3.scale.linear()
+    .domain([min, max])
+    .range(["#EFEFFF","#02386F"]); // blue color
+
+
+    // fill dataset in appropriate format
+    temp.forEach(function(d){ //
+    dataToMap[d.Countrycode] = {
+        Country: d.Country,
+        Projects: d.Projects,
+        total_cost: d.total_cost,
+        fillColor: paletteScale(d.total_cost)
+    };
+    });
+
+
+    var map = new Datamap({element: document.getElementById('container'),
+      data: dataToMap,
+      geographyConfig: {
+      popupTemplate: function(geo, data) {
+                // don't show tooltip if country don't present in dataset
+                if (!data) { return ; }
+                var list = [];
+                for (var i = 0; i < data.Projects.length; i++) {
+                    list.push('<br>');
+                    var kras = i+1 + ') '+ data.Projects[i][0]  + ' : ' + data.Projects[i][1];
+                    list.push(kras);
+                }
+                return ['<div class="hoverinfo">',
+                    '<strong>', geo.properties.name, '</strong>',
+                    '<br>County: <strong>', data.Country, '</strong>',
+                    '<br>Projects ' , list.join('') ,
+                    '<br>Total_cost: <strong>', data.total_cost, '</strong>',
+                    '</div>'].join('');
+      }
+      }}
+  );
+</script>
+</body>
+</html>
